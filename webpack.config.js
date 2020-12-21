@@ -18,7 +18,12 @@ module.exports = {
                   {
                   loader: 'file-loader',
             options : {
-              outputPath: 'images'
+              outputPath: 'images',
+		          "presets": [
+				              [
+						                    "@babel/preset-react"
+						                  ]
+				            ]
             }
               },
               ],
@@ -34,7 +39,4 @@ module.exports = {
             template : 'app/index.html'
         }),
     ],
-    presets: [
-	["@babel/preset-react"]
-    ]
 }
