@@ -33,6 +33,8 @@ module.exports = {
         new HtmlWebpackPlugin ({
             template : 'app/index.html'
         }),
+    ],
+    presets: [
+	["@babel/preset-react"]
     ]
-
 }
