@@ -45,6 +45,8 @@ body {
   line-height: 1.5;
   font-size: 18px;
   color: white;
+  background-color: #f7f7f7;
+  font-family: 'Open Sans', sans-serif;
 }
 
 /* Remove list styles on ul, ol elements with a class attribute */

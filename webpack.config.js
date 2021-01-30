@@ -18,12 +18,7 @@ module.exports = {
                   {
                   loader: 'file-loader',
             options : {
-              outputPath: 'images',
-		          "presets": [
-				              [
-						                    "@babel/preset-react"
-						                  ]
-				            ]
+              outputPath: 'images'
             }
               },
               ],
@@ -38,5 +33,6 @@ module.exports = {
         new HtmlWebpackPlugin ({
             template : 'app/index.html'
         }),
-    ],
+    ]
+
 }
