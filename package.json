@@ -11,19 +11,34 @@
   "author": "Mike Pechousek",
   "license": "ISC",
   "dependencies": {
+    "@babel/polyfill": "^7.12.1",
+    "color-hash": "^1.0.3",
     "fecha": "^4.2.0",
+    "lodash": "^4.17.21",
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
     "react-router-dom": "^5.1.2",
-    "styled-components": "^5.2.1"
+    "react-zoom-pan-pinch": "^1.6.1",
+    "styled-components": "^5.2.1",
+    "web3": "^1.3.4"
+  },
+  "babel": {
+    "presets": [
+      "@babel/preset-env",
+      "@babel/preset-react"
+    ]
   },
   "devDependencies": {
     "@babel/core": "^7.8.4",
-    "@babel/plugin-transform-runtime": "^7.12.1",
+    "@babel/plugin-transform-runtime": "^7.13.10",
     "@babel/preset-env": "^7.8.4",
     "@babel/preset-react": "^7.12.10",
     "@babel/runtime": "^7.12.5",
-    "babel-loader": "^8.0.6",
+    "babel-core": "^6.26.3",
+    "babel-loader": "^8.2.2",
+    "babel-polyfill": "^6.26.0",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-stage-0": "^6.24.1",
     "css-loader": "^3.4.2",
     "eslint": "^7.2.0",
     "eslint-config-airbnb": "^18.2.0",
@@ -36,7 +51,7 @@
     "style-loader": "^1.1.3",
     "svg-loader": "0.0.2",
     "webpack": "^4.41.5",
-    "webpack-cli": "^3.3.10",
+    "webpack-cli": "^3.3.12",
     "webpack-dev-server": "^3.10.3"
   }
 }
