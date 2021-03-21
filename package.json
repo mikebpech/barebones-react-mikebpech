@@ -1,14 +1,19 @@
 {
-  "name": "template",
+  "name": "frontend",
   "version": "1.0.0",
-  "description": "Template 2020",
+  "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "webpack-dev-server --open",
     "create": "webpack",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "webpack-dev-server --open"
   },
-  "author": "Mike Pechousek",
+  "babel": {
+    "presets": [
+      "@babel/preset-env",
+      "@babel/preset-react"
+    ]
+  },
+  "author": "",
   "license": "ISC",
   "dependencies": {
     "@babel/polyfill": "^7.12.1",
@@ -16,7 +21,9 @@
     "fecha": "^4.2.0",
     "lodash": "^4.17.21",
     "react": "^16.12.0",
+    "react-countdown": "^2.3.1",
     "react-dom": "^16.12.0",
+    "react-flip-move": "^3.0.4",
     "react-router-dom": "^5.1.2",
     "react-zoom-pan-pinch": "^1.6.1",
     "styled-components": "^5.2.1",
@@ -32,7 +39,7 @@
     "@babel/core": "^7.8.4",
     "@babel/plugin-transform-runtime": "^7.13.10",
     "@babel/preset-env": "^7.8.4",
-    "@babel/preset-react": "^7.12.10",
+    "@babel/preset-react": "^7.8.3",
     "@babel/runtime": "^7.12.5",
     "babel-core": "^6.26.3",
     "babel-loader": "^8.2.2",
