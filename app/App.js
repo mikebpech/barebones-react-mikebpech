@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styled from "styled-components";
 import _ from 'lodash';
 import canvas from './utils/canvas';
@@ -6,30 +6,49 @@ import canvas from './utils/canvas';
 import ColorHash from "color-hash";
 
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
+import getWeb3 from "./utils/getWeb3";
 
 const colors = [
-  "#ff0000",
-  "#800080",
-  "#000000",
-  "#808080",
-  "#ffffff",
-  "#0000ff",
-  "#00ffff",
-  "#008000",
-  "#ffff00",
-];
+  '#000000',
+  '#ffffff',
+  '#663300',
+  '#808080',
+  '#FF0000',
+  '#009900',
+  '#0000FF',
+  '#6600cc',
+  '#FFFF00',
+  '#CC6600',
+  '#FF66B2',
+  '#00CCCC'
+]
 
 const App = () => {
   const [squares, setSquares] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [ scale, setScale ] = useState(1);
+  const [currentAddress, setCurrentAddress] = useState("");
+  const [scale, setScale] = useState(1);
+  const delayedMousePos = useRef(_.throttle(q => handleFollowMouse(q), 50)).current;
   const canvasRef = useRef(null);
 
-  const fillSquares = (startX, startY, ownerId) => {
-    for (let col = startX; col < startX + 5; col++) {
-      for (let row = startY; row < startY + 5; row++) {
-        const color = colors[Math.floor(Math.random() * colors.length)];
-        draw(col, row, color);
+  const fillSquares = (startX, startY, index) => {
+    let foundSquare = false;
+    let squareChunks;
+
+    if (squares[index]) {
+      foundSquare = true;
+      squareChunks = _.chunk(squares[index].artwork, 5);
+    }
+    for (let col = 0; col < 5; col++) {
+      for (let row = 0; row < 5; row++) {
+        let color;
+        if (foundSquare) {
+          color = colors[squareChunks[col][row]];
+        } else {
+          color = colors[Math.floor(Math.random() * colors.length)];
+        }
+
+        draw(startX+col, startY+row, color);
       }
     }
   };
@@ -50,41 +69,53 @@ const App = () => {
       console.log('total', totalSquares);
       for (let i = 0; i < totalSquares; i++) {
         const sq = await canvas.methods.getSquare(i).call();
-        sqs.push({ coordX: sq.coordX, coordY: sq.coordY, ownerId: sq.ownerId });
+        sqs.push({ coordX: Number(sq.coordX), coordY: Number(sq.coordY), ownerId: sq.ownerId, artwork: sq.artwork });
       }
 
       setSquares(sqs);
       setLoading(false);
     }
-
+    
     getOwner();
   }, []);
 
   useEffect(() => {
-    setTimeout(() => fakeSquares(), 100);
+    handleWeb3();
   }, []);
 
-  const calculateSpot = ({ coordX, coordY, ownerId }) => {
-    fillSquares(Number(coordX), Number(coordY), ownerId);
+  const calculateSpot = ({ coordX, coordY, index }) => {
+    fillSquares(coordX, coordY, index);
   };
+
+  const handleWeb3 = async () => {
+    try {
+      const web3 = await getWeb3();
+      // Get user accounts
+      const accounts = await web3.eth.getAccounts();
+      setCurrentAddress(accounts[0]);
+    } catch(error) {
+
+    }
+  }
 
   const fakeSquares = () => {
     console.log(`called at ${performance.now()}`);
+    console.log('sqs',squares);
 
     function _calculateCoordX(squareId) {
-      return ((squareId - 1) % 200) * 5;
+      return ((squareId) % 200) * 5;
     }
 
     function _calculateCoordY(squareId) {
-      return Math.floor((squareId - 1) / 200) * 5;
+      return Math.floor((squareId) / 200) * 5;
     }
 
     let current = 0;
-    while (current <= 40000) {
+    while (current <= 1000) {
       calculateSpot({
         coordX: _calculateCoordX(current),
         coordY: _calculateCoordY(current),
-        ownerId: Math.random(),
+        index: current,
       });
       current++;
     }
@@ -104,32 +135,51 @@ const App = () => {
     };
   }
 
-  const onMouseMove = useMemo(() => {
-    const throttled = _.throttle(e => {
-      const mouse = getMousePos(e);
-      console.log(squares)
-      console.log('Mouse position: ' + mouse.x + ',' + mouse.y);
-    }, 100);
-    return e => {
-      e.persist();
-      return throttled(e);
-    };
-  }, [scale, squares]);
+  const calculateCoordFromCoordinates = (x, y) => {
+    return (((Math.floor(y/5)*5) / 5) * 200) + (Math.floor(x/5)*5)/5
+  }
+
+  const handleMouseMove = (e) => {
+    const mouse = getMousePos(e);
+    console.log(squares)
+    const position = calculateCoordFromCoordinates(mouse.x, mouse.y);
+    console.log(`position is ${position}`);
+    console.log('hovering over ', squares);
+    console.log('Mouse position: ' + mouse.x + ',' + mouse.y);
+  }
+
+  const handleFollowMouse = (e) => {
+    const mouse = getMousePos(e);
+    const hover = document.getElementById('hover-item');
+    hover.style.top = `${(Math.floor(mouse.y/5) *5)}px`;
+    hover.style.left = `${(Math.floor(mouse.x/5) *5)}px`;
+  }
+
+  const onMouseMove = (e) => {
+    e.persist();
+    handleMouseMove(e);
+    delayedMousePos(e)
+  }
 
   return (
     <MainApp>
       <div id="canvas">
+        <div style={{position: 'absolute', fontWeight: 700, top: '20px'}} className="current-address">{currentAddress || 'not connected'}</div>
+        <button onClick={() => fakeSquares()}>get</button>
+                
         <p>current scale {scale}</p>
         <div id="canvas-wrapper">
           <TransformWrapper
-            options={{ maxScale: 50 }}
+            options={{ maxScale: 50, centerContent: true }}
             defaultScale={1}
             defaultPositionX={500}
             defaultPositionY={500}
+            
             onZoomChange={handleOnZoom}
           >
             {({ zoomIn, zoomOut,resetTransform, ...rest }) => (
               <TransformComponent>
+                <div id="hover-item"></div>
                 <canvas onMouseMove={onMouseMove} ref={canvasRef} width="1000" height="1000" id="canvas">
                   &nbsp;
                 </canvas>
@@ -165,6 +215,21 @@ const MainApp = styled.div`
     display: flex;
     justify-content: center;
     border: 10px solid brown;
+
+    .react-transform-element {
+      position: relative;
+    }
+
+    #hover-item {
+      cursor: grab;
+      position: absolute;
+      width: 5px;
+      transition: all .2s;
+      height: 5px;
+      border: 1px solid #b2222299;
+      z-index: 5;
+      border-radius: 50%;
+    }
   }
 
   button {
