@@ -5,10 +5,9 @@ import styled from '@emotion/styled';
 import _ from 'lodash';
 import { Button } from '@chakra-ui/button';
 import { Divider } from '@chakra-ui/layout';
+import web3 from 'web3';
 
 const CurrentHover = ({ hoverItem, selected }) => {
-  console.log(hoverItem);
-
   const generateBlock = () => {
     if (!hoverItem) {
       const arr = _.times(25, _.constant(null));
@@ -19,6 +18,22 @@ const CurrentHover = ({ hoverItem, selected }) => {
     )
   }
 
+  const generateBadge = (s) => {
+    if (s.saleInfo) {
+      return (
+        <Badge fontSize="md" borderRadius="full" px="2" colorScheme="red">
+          For Sale
+        </Badge>
+      )
+    }
+
+    return (
+      <Badge fontSize="md" borderRadius="full" px="2" colorScheme="teal">
+        New
+      </Badge>
+    )
+  }
+
   return (
     <Box maxW="sm" borderWidth="1px" borderRadius="lg" overflow="hidden">
       <GridStyling>
@@ -26,9 +41,7 @@ const CurrentHover = ({ hoverItem, selected }) => {
       </GridStyling>
       <Box p="6">
         <Box d="flex" alignItems="baseline">
-          <Badge borderRadius="full" px="2" colorScheme="teal">
-            New
-          </Badge>
+          { hoverItem && generateBadge(hoverItem)}
           <Box
             color="gray.500"
             fontWeight="semibold"
@@ -51,15 +64,17 @@ const CurrentHover = ({ hoverItem, selected }) => {
         </Box>
 
         <Box mt="2">
-          $1.00
-          <Box px="1" as="span" color="gray.600" fontSize="sm">
-            &bull; last price
+          <Box fontWeight="bold">
+            { hoverItem?.saleInfo ? `${web3.utils.fromWei(hoverItem.saleInfo?.price, 'ether')} ETH` : '$0.00' }
+            <Box px="1" as="span" color="gray.600" fontSize="sm">
+              &bull; current price
+            </Box>
           </Box>
         </Box>
       </Box>
       <Divider></Divider>
       <Box p="6">
-        <Button colorScheme="blue" size="md">Purchase</Button>
+        <Button disabled={!hoverItem?.saleInfo} colorScheme="blue" size="md">Purchase</Button>
       </Box>
     </Box>
   )
@@ -84,7 +99,7 @@ const GridItem = styled.div`
   justify-content: center;
   align-items: center;
   font-size: 8px;
-  color: white;
+  color: #dadada;
 `
 
 export default CurrentHover;

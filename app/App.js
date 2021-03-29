@@ -8,13 +8,15 @@ import React, {
 import styled from "styled-components";
 import _ from "lodash";
 import canvas from "./utils/canvas";
-import { ChakraProvider, Container, Heading, Stat, StatHelpText, StatLabel, StatNumber } from "@chakra-ui/react";
+import shop from "./utils/shop";
+import { Box, Button, ChakraProvider, Container, Divider, Flex, FormControl, FormLabel, Heading, Input, NumberInput, Stat, StatHelpText, StatLabel, StatNumber } from "@chakra-ui/react";
 import getWeb3 from "./utils/getWeb3";
 import Canvas from "./components/Canvas";
 import Header from "./components/Header";
 import { BrowserRouter as Router } from "react-router-dom";
 import CurrentHover from "./components/CurrentHover";
 import { colors } from './utils/colors';
+import { getMousePos } from './utils/funcs';
 
 const App = () => {
   const [squares, setSquares] = useState([]);
@@ -50,12 +52,27 @@ const App = () => {
       console.log("total", totalSquares);
       for (let i = 0; i < totalSquares; i++) {
         const sq = await canvas.methods.getSquare(i).call();
+        let sale;
+        try {
+          const isSale = await shop.methods.getSale(i).call();
+          if (isSale) {
+            sale = {
+              price: isSale.price,
+              seller: isSale.seller,
+              postedAt: isSale.postedAt
+            };
+          }
+        } catch (error) {
+          sale = null;
+        }
+
         sqs.push({
           coordX: Number(sq.coordX),
           coordY: Number(sq.coordY),
           ownerId: sq.ownerId,
           artwork: sq.artwork,
-          squareId: i
+          squareId: i,
+          saleInfo: sale || null
         });
       }
 
@@ -87,17 +104,17 @@ const App = () => {
     } catch (error) {}
   };
 
+  function _calculateCoordX(squareId) {
+    return (squareId % 200) * 5;
+  }
+
+  function _calculateCoordY(squareId) {
+    return Math.floor(squareId / 200) * 5;
+  }
+
   const addSquaresToCanvas = (sqs = []) => {
     console.log(`called at ${performance.now()}`);
     console.log("sqs", sqs);
-
-    function _calculateCoordX(squareId) {
-      return (squareId % 200) * 5;
-    }
-
-    function _calculateCoordY(squareId) {
-      return Math.floor(squareId / 200) * 5;
-    }
 
     let current = 0;
     while (current <= sqs.length) {
@@ -115,6 +132,20 @@ const App = () => {
     console.log(`finished at ${performance.now()}`);
   };
 
+  const handlePickSquare = e => {
+    e.preventDefault();
+    const position = e.target.value;
+    if (position < 40000 && position >= 0) {
+      const x = _calculateCoordX(position);
+      const y = _calculateCoordY(position);
+      if (squares[position]) {
+        setHoverItem(squares[position]);
+      } else {
+        setHoverItem({ squareId : position, coordX: x, coordY: y, artwork: _.times(25, _.constant(0)), ownerId: null })
+      }
+    }
+  }
+
   return (
     <ChakraProvider>
       <Router>
@@ -123,9 +154,22 @@ const App = () => {
           <div className="dash-items">
             <Canvas setHoverItem={setHoverItem} canvasRef={canvasRef} squares={squares} />
             <div className="sidebar">
-              <h2 className="square-id">
-                Square ID: {hoverItem?.squareId || '0'}
-              </h2>
+              <div id="select-square">
+                <Box mb="4">
+                  <form onSubmit={handlePickSquare}>
+                    <Flex alignItems="center">
+                      <Button pl="6" pr="6" colorScheme="teal" type="submit">Pick Square</Button>
+                      <Input type="number" value={hoverItem?.squareId} onChange={handlePickSquare} ml="2" placeholder="Number" z id="pick-square-input" />
+                    </Flex>
+                  </form>
+                </Box>
+              </div>
+              <Divider />
+              <Box mt="4">
+                <h2 className="square-id">
+                  Square ID: {hoverItem?.squareId || '0'}
+                </h2>
+              </Box>
               <CurrentHover hoverItem={hoverItem} />
             </div>
           </div>

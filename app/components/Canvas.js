@@ -1,6 +1,7 @@
 import _ from 'lodash';
 import React, { useRef, useState } from 'react';
 import { TransformComponent, TransformWrapper } from 'react-zoom-pan-pinch';
+import { getMousePos } from '../utils/funcs';
 
 
 const Canvas = React.memo(({ squares, canvasRef, setHoverItem, selected, setSelected }) => {
@@ -9,14 +10,6 @@ const Canvas = React.memo(({ squares, canvasRef, setHoverItem, selected, setSele
 
   const handleOnZoom = e => {
     setScale(e.scale);
-  }
-
-  const getMousePos = (evt) => {
-    const rect = canvasRef.current.getBoundingClientRect();
-    return {
-      x: Math.round((evt.clientX - rect.left) / scale),
-      y: Math.round((evt.clientY - rect.top) / scale)
-    };
   }
 
   const calculateCoordFromCoordinates = (x, y) => {
@@ -33,7 +26,7 @@ const Canvas = React.memo(({ squares, canvasRef, setHoverItem, selected, setSele
   }
 
   const handleFollowMouse = (e) => {
-    const mouse = getMousePos(e);
+    const mouse = getMousePos(e, scale, canvasRef);
     handleMouseMove(mouse);
     const hover = document.getElementById('hover-item');
     hover.style.top = `${(Math.floor(mouse.y/5) *5)}px`;
