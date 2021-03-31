@@ -23,10 +23,10 @@ const App = () => {
   const [loading, setLoading] = useState(false);
   const [hoverItem, setHoverItem] = useState(null);
   const [currentAddress, setCurrentAddress] = useState("");
+  const [minting, setMinting] = useState(false);
   const canvasRef = useRef(null);
 
-  const fillSquares = (startX, startY, index, artwork) => {
-    console.log(startX);
+  const fillSquares = (startX, startY, artwork) => {
     const squareChunks = _.chunk(artwork, 5);
     for (let col = 0; col < 5; col++) {
       for (let row = 0; row < 5; row++) {
@@ -45,43 +45,43 @@ const App = () => {
     canvasContext.fill();
   };
 
-  useEffect(() => {
-    const getOwner = async () => {
-      let sqs = [];
-      const totalSquares = await canvas.methods.totalSupply().call();
-      console.log("total", totalSquares);
-      for (let i = 0; i < totalSquares; i++) {
-        const sq = await canvas.methods.getSquare(i).call();
-        let sale;
-        try {
-          const isSale = await shop.methods.getSale(i).call();
-          if (isSale) {
-            sale = {
-              price: isSale.price,
-              seller: isSale.seller,
-              postedAt: isSale.postedAt
-            };
-          }
-        } catch (error) {
-          sale = null;
+  const getOwner = async () => {
+    let sqs = [];
+    const totalSquares = await canvas.methods.totalSupply().call();
+    console.log("total", totalSquares);
+    for (let i = 0; i < totalSquares; i++) {
+      const sq = await canvas.methods.getSquare(i).call();
+      let sale;
+      try {
+        const isSale = await shop.methods.getSale(i).call();
+        if (isSale) {
+          sale = {
+            price: isSale.price,
+            seller: isSale.seller,
+            postedAt: isSale.postedAt
+          };
         }
-
-        sqs.push({
-          coordX: Number(sq.coordX),
-          coordY: Number(sq.coordY),
-          ownerId: sq.ownerId,
-          artwork: sq.artwork,
-          squareId: i,
-          saleInfo: sale || null
-        });
+      } catch (error) {
+        sale = null;
       }
 
-      setSquares(sqs);
-      setLoading(false);
+      sqs.push({
+        coordX: Number(sq.coordX),
+        coordY: Number(sq.coordY),
+        ownerId: sq.ownerId,
+        artwork: sq.artwork,
+        squareId: i,
+        saleInfo: sale || null
+      });
+    }
 
-      return sqs;
-    };
+    setSquares(sqs);
+    setLoading(false);
 
+    return sqs;
+  };
+
+  useEffect(() => {
     getOwner().then((sq) => {
       addSquaresToCanvas(sq);
     });
@@ -91,8 +91,8 @@ const App = () => {
     handleWeb3();
   }, []);
 
-  const calculateSpot = ({ coordX, coordY, index, artwork }) => {
-    fillSquares(coordX, coordY, index, artwork);
+  const calculateSpot = ({ coordX, coordY, artwork }) => {
+    fillSquares(coordX, coordY, artwork);
   };
 
   const handleWeb3 = async () => {
@@ -122,7 +122,6 @@ const App = () => {
         calculateSpot({
           coordX: _calculateCoordX(current),
           coordY: _calculateCoordY(current),
-          index: current,
           artwork: sqs[current].artwork,
         });
       }
@@ -146,6 +145,30 @@ const App = () => {
     }
   }
 
+  const handleMint = () => {
+    if (minting) return;
+
+    setMinting(true);
+
+    canvas.methods.mint(1).send({
+      from: currentAddress,
+      value: 560000000000000
+    }).then(r => {
+      if (r.status) {
+        const id = r.events?.SquareCreation?.returnValues?.squareId;
+        console.log(r);
+        console.log(id);
+        if (id) {
+          getOwner().then((sq) => {
+            addSquaresToCanvas(sq);
+          });
+        }
+      }
+
+      setMinting(false);
+    })
+  }
+
   return (
     <ChakraProvider>
       <Router>
@@ -154,8 +177,14 @@ const App = () => {
           <div className="dash-items">
             <Canvas setHoverItem={setHoverItem} canvasRef={canvasRef} squares={squares} />
             <div className="sidebar">
-              <div id="select-square">
+              <div id="minting">
                 <Box mb="4">
+                  <Button isLoading={minting} loadingText="Minting..." onClick={handleMint} size='lg' isFullWidth={true} pl="6" pr="6" colorScheme="red" type="button">Mint Next Available - 0.00056 ETH</Button>
+                </Box>
+              </div>
+              <Divider />
+              <div id="select-square">
+                <Box mt="4" mb="4">
                   <form onSubmit={handlePickSquare}>
                     <Flex alignItems="center">
                       <Button pl="6" pr="6" colorScheme="teal" type="submit">Pick Square</Button>

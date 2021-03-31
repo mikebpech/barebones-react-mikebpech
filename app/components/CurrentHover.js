@@ -65,7 +65,7 @@ const CurrentHover = ({ hoverItem, selected }) => {
 
         <Box mt="2">
           <Box fontWeight="bold">
-            { hoverItem?.saleInfo ? `${web3.utils.fromWei(hoverItem.saleInfo?.price, 'ether')} ETH` : '$0.00' }
+            { hoverItem?.saleInfo ? `${web3.utils.fromWei(hoverItem.saleInfo?.price, 'ether')} ETH` : '0.00056 ETH' }
             <Box px="1" as="span" color="gray.600" fontSize="sm">
               &bull; current price
             </Box>

@@ -18,6 +18,7 @@
   "dependencies": {
     "@babel/polyfill": "^7.12.1",
     "@chakra-ui/react": "^1.4.1",
+    "@chakra-ui/toast": "^1.2.0",
     "@emotion/react": "^11.1.5",
     "@emotion/styled": "^11.1.5",
     "color-hash": "^1.0.3",
